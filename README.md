@@ -1,12 +1,12 @@
-# Sistema anti fraude Bradesco
+# Sistema anti fraude Itau
 
-Sistema para detecção e prevenção de fraudes bancárias, desenvolvido como projeto universitário para o Bradesco. O projeto é composto por uma API principal em Java (Spring Boot) e um backend auxiliar em Python que utiliza IA para análise de e-mails suspeitos.
+Sistema para detecção e prevenção de fraudes bancárias, desenvolvido como projeto para o Itaú. O projeto é composto por uma API principal em Java (Spring Boot) e um backend auxiliar em Python que utiliza IA para análise de e-mails suspeitos.
 
 ## Estrutura do Projeto
 
 - **Java (Spring Boot)**: API principal para gerenciamento e exposição dos endpoints REST.
 - **Python Backend**: Serviço Flask que utiliza o modelo Gemini AI para detectar spam em e-mails.
-- **MySQL**: Banco de dados relacional para persistência dos dados.
+- **PostgresSQL**: Banco de dados relacional para persistência dos dados.
 - **Docker**: Facilita a execução dos serviços em containers.
 
 ## Como Executar
