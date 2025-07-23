@@ -54,7 +54,7 @@ public class AlertController {
             RestTemplate restTemplate = new RestTemplate();
             
             // Use the analyze endpoint with POST
-            String pythonServiceUrl = "http://python-backend:5000/analyze";
+            String pythonServiceUrl = "http://localhost:5000/analyze";
             AlertDTO dto = restTemplate.postForObject(pythonServiceUrl, emailContent, AlertDTO.class);
             
             if (dto == null) {
@@ -78,6 +78,39 @@ public class AlertController {
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("AlertController is working!");
+    }
+    
+    @GetMapping("/spam")
+    public ResponseEntity<Iterable<Alert>> getSpamAlerts() {
+        return ResponseEntity.ok(alertRepository.findByIsSpamTrue());
+    }
+    
+    // Novos endpoints GET
+    @GetMapping("/legitimate")
+    public ResponseEntity<Iterable<Alert>> getLegitimateAlerts() {
+        return ResponseEntity.ok(alertRepository.findByIsSpamFalse());
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<Alert> getAlertById(@PathVariable Long id) {
+        return alertRepository.findById(id)
+            .map(alert -> ResponseEntity.ok(alert))
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @GetMapping("/high-confidence")
+    public ResponseEntity<Iterable<Alert>> getHighConfidenceAlerts() {
+        return ResponseEntity.ok(alertRepository.findByConfidenceGreaterThan(0.8));
+    }
+    
+    @GetMapping("/count")
+    public ResponseEntity<Long> getAlertsCount() {
+        return ResponseEntity.ok(alertRepository.count());
+    }
+    
+    @GetMapping("/count/spam")
+    public ResponseEntity<Long> getSpamAlertsCount() {
+        return ResponseEntity.ok(alertRepository.countByIsSpamTrue());
     }
     
     private Alert convertToAlert(AlertDTO dto) {
