@@ -1,0 +1,53 @@
+services:
+  database_postgres:
+    image: 'postgres:17.5-alpine3.21'
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: antiFraudSystem
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: 'dpage/pgadmin4:9.3.0'
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_PROXY_X_HOST_COUNT: 1
+      PGADMIN_CONFIG_PROXY_X_PREFIX_COUNT: 1
+    ports:
+       - '8888:80'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - database_postgres
+
+  python-backend:
+    build:
+      context: ./src/python-backend
+    env_file:
+      - ./src/python-backend/.env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - database_postgres
+
+  java-backend:
+    build:
+      context: .
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database_postgres
+      - python-backend
+
+volumes:
+  postgres_data:
+  pgadmin_data:
