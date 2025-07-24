@@ -1,9 +1,16 @@
 package com.itau.antifraud.model;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import com.itau.antifraud.listener.AlertChangeListener;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@EntityListeners({AuditingEntityListener.class, AlertChangeListener.class})
 @Table(name = "alerts")
 public class Alert {
     
@@ -26,6 +33,17 @@ public class Alert {
     @Column(name = "email_content", columnDefinition = "TEXT")
     private String emailContent;
     
+    @CreatedDate
+    @Column(name = "created_date")
+    private LocalDateTime createdDate;
+    
+    @LastModifiedDate
+    @Column(name = "last_modified_date")
+    private LocalDateTime lastModifiedDate;
+    
+    @Version
+    private Long version;
+    
     // Constructors
     public Alert() {}
     
@@ -47,4 +65,13 @@ public class Alert {
     
     public String getEmailContent() { return emailContent; }
     public void setEmailContent(String emailContent) { this.emailContent = emailContent; }
+    
+    public LocalDateTime getCreatedDate() { return createdDate; }
+    public void setCreatedDate(LocalDateTime createdDate) { this.createdDate = createdDate; }
+    
+    public LocalDateTime getLastModifiedDate() { return lastModifiedDate; }
+    public void setLastModifiedDate(LocalDateTime lastModifiedDate) { this.lastModifiedDate = lastModifiedDate; }
+    
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 }
