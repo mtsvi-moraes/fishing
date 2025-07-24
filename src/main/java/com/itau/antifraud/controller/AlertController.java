@@ -183,6 +183,65 @@ public class AlertController {
         }
     }
     
+    // Operações de DELETE
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteAlert(@PathVariable Long id) {
+        return alertRepository.findById(id)
+            .map(alert -> {
+                alertRepository.delete(alert);
+                return ResponseEntity.ok("Alert with ID " + id + " deleted successfully");
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/bulk-delete")
+    public ResponseEntity<String> bulkDeleteAlerts(@RequestBody BulkUpdateRequest request) {
+        try {
+            int deletedCount = 0;
+            for (Long id : request.getIds()) {
+                if (alertRepository.existsById(id)) {
+                    alertRepository.deleteById(id);
+                    deletedCount++;
+                }
+            }
+            return ResponseEntity.ok("Deleted " + deletedCount + " alerts");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error deleting alerts: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/spam")
+    public ResponseEntity<String> deleteAllSpamAlerts() {
+        try {
+            Iterable<Alert> spamAlerts = alertRepository.findByIsSpamTrue();
+            int deletedCount = 0;
+            for (Alert alert : spamAlerts) {
+                alertRepository.delete(alert);
+                deletedCount++;
+            }
+            return ResponseEntity.ok("Deleted " + deletedCount + " spam alerts");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error deleting spam alerts: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/low-confidence")
+    public ResponseEntity<String> deleteLowConfidenceAlerts(@RequestParam(defaultValue = "0.3") double threshold) {
+        try {
+            Iterable<Alert> allAlerts = alertRepository.findAll();
+            int deletedCount = 0;
+            for (Alert alert : allAlerts) {
+                if (alert.getConfidence() < threshold) {
+                    alertRepository.delete(alert);
+                    deletedCount++;
+                }
+            }
+            return ResponseEntity.ok("Deleted " + deletedCount + " alerts with confidence below " + threshold);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error deleting low confidence alerts: " + e.getMessage());
+        }
+    }
+    
     private Alert convertToAlert(AlertDTO dto) {
         Alert alert = new Alert();
         alert.setConfidence(dto.getConfidence());
