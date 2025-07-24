@@ -16,14 +16,27 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 @RestController
 @RequestMapping("/api/alerts")
+@Tag(name = "Alert Management", description = "APIs para gerenciamento de alertas de spam/phishing")
 public class AlertController {
 
     @Autowired
     private AlertRepository alertRepository;
 
     @PostMapping("/fetch")
+    @Operation(summary = "Buscar análise de email de exemplo", description = "Faz uma requisição para o serviço Python para analisar um email de exemplo")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Email analisado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Falha na comunicação com o serviço Python"),
+        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     public ResponseEntity<?> fetchFromPythonAndSave() {
         try {
             RestTemplate restTemplate = new RestTemplate();
@@ -50,6 +63,7 @@ public class AlertController {
     }
     
     @PostMapping("/analyze")
+    @Operation(summary = "Analisar conteúdo de email", description = "Analisa o conteúdo de um email fornecido para detectar spam/phishing")
     public ResponseEntity<?> analyzeEmailAndSave(@RequestBody String emailContent) {
         try {
             RestTemplate restTemplate = new RestTemplate();
@@ -72,16 +86,19 @@ public class AlertController {
     }
     
     @GetMapping
+    @Operation(summary = "Listar todos os alertas", description = "Retorna todos os alertas cadastrados no sistema")
     public ResponseEntity<Iterable<Alert>> getAllAlerts() {
         return ResponseEntity.ok(alertRepository.findAll());
     }
     
     @GetMapping("/health")
+    @Operation(summary = "Health check", description = "Verifica se o controlador está funcionando")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("AlertController is working!");
     }
     
     @GetMapping("/spam")
+    @Operation(summary = "Listar alertas de spam", description = "Retorna apenas os alertas identificados como spam")
     public ResponseEntity<Iterable<Alert>> getSpamAlerts() {
         return ResponseEntity.ok(alertRepository.findByIsSpamTrue());
     }
