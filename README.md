@@ -121,5 +121,40 @@ A documentação inclui:
 - A API suporta operações CRUD completas e operações em lote para eficiência.
 - O banco de dados PostgreSQL garante persistência e integridade dos dados.
 
----
+## Arquitetura do Sistema
+
+### Diagrama de Componentes
+
+```mermaid
+graph TB
+    subgraph "Java Backend"
+        AC[AlertController]
+        DEC[DataExtractionController]
+        HC[HealthCheckController]
+    end
+    
+    subgraph "Python Backend"
+        FLASK[Flask App]
+        FD[FishingDetector]
+    end
+    
+    subgraph "Data Layer"
+        PG[(PostgreSQL)]
+        FILES[data-exports/]
+    end
+    
+    DEC --> FILES
+    AC --> FLASK
+    AC --> PG
+```
+
+### Endpoints de Extração de Dados
+
+O [`DataExtractionController`](src/main/java/com/itau/antifraud/controller/DataExtractionController.java) gerencia arquivos no diretório `data-exports/`:
+
+- **GET** `/api/data-extraction/files` - Lista arquivos exportados
+- **GET** `/api/data-extraction/files/count` - Conta arquivos por tipo
+- **GET** `/api/data-extraction/files/{filename}` - Download de arquivo
+- **DELETE** `/api/data-extraction/files` - Limpeza de arquivos antigos
+- **GET** `/api/data-extraction/status` - Status do sistema
 
