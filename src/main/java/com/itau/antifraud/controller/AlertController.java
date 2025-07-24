@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import com.itau.antifraud.dto.AlertDTO;
+import com.itau.antifraud.dto.BulkUpdateRequest;
 import com.itau.antifraud.model.Alert;
 import com.itau.antifraud.repository.AlertRepository;
 
@@ -111,6 +112,75 @@ public class AlertController {
     @GetMapping("/count/spam")
     public ResponseEntity<Long> getSpamAlertsCount() {
         return ResponseEntity.ok(alertRepository.countByIsSpamTrue());
+    }
+    
+    // Operações de UPDATE
+    @PutMapping("/{id}")
+    public ResponseEntity<Alert> updateAlert(@PathVariable Long id, @RequestBody Alert alertDetails) {
+        return alertRepository.findById(id)
+            .map(alert -> {
+                alert.setConfidence(alertDetails.getConfidence());
+                alert.setIsSpam(alertDetails.getIsSpam());
+                alert.setSubject(alertDetails.getSubject());
+                alert.setEmailContent(alertDetails.getEmailContent());
+                // Não atualiza timeDetected - mantém o original
+                
+                Alert updatedAlert = alertRepository.save(alert);
+                return ResponseEntity.ok(updatedAlert);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @PatchMapping("/{id}/spam-status")
+    public ResponseEntity<Alert> updateSpamStatus(@PathVariable Long id, @RequestBody boolean isSpam) {
+        return alertRepository.findById(id)
+            .map(alert -> {
+                alert.setIsSpam(isSpam);
+                Alert updatedAlert = alertRepository.save(alert);
+                return ResponseEntity.ok(updatedAlert);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @PatchMapping("/{id}/confidence")
+    public ResponseEntity<Alert> updateConfidence(@PathVariable Long id, @RequestBody double confidence) {
+        if (confidence < 0.0 || confidence > 1.0) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        return alertRepository.findById(id)
+            .map(alert -> {
+                alert.setConfidence(confidence);
+                Alert updatedAlert = alertRepository.save(alert);
+                return ResponseEntity.ok(updatedAlert);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @PatchMapping("/{id}/subject")
+    public ResponseEntity<Alert> updateSubject(@PathVariable Long id, @RequestBody String subject) {
+        return alertRepository.findById(id)
+            .map(alert -> {
+                alert.setSubject(subject);
+                Alert updatedAlert = alertRepository.save(alert);
+                return ResponseEntity.ok(updatedAlert);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @PutMapping("/bulk-update-spam")
+    public ResponseEntity<String> bulkUpdateSpamStatus(@RequestBody BulkUpdateRequest request) {
+        try {
+            for (Long id : request.getIds()) {
+                alertRepository.findById(id).ifPresent(alert -> {
+                    alert.setIsSpam(request.getIsSpam());
+                    alertRepository.save(alert);
+                });
+            }
+            return ResponseEntity.ok("Updated " + request.getIds().size() + " alerts");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error updating alerts: " + e.getMessage());
+        }
     }
     
     private Alert convertToAlert(AlertDTO dto) {
